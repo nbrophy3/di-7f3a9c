@@ -85,6 +85,7 @@ dl.cite a{color:var(--wine);word-break:break-word}
 textarea{width:100%;height:42vh;font:12px/1.35 ui-monospace,Menlo,monospace;background:#fffdf6;border:1px solid var(--rule);padding:8px;color:var(--ink)}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff7e6;padding:8px 16px;border-radius:20px;font-size:.85rem;opacity:0;pointer-events:none;transition:opacity .25s;z-index:99}
 .toast.on{opacity:1}
+.kill{font:inherit;font-size:.82rem;background:#fff;border:1px solid var(--wine);color:var(--wine);padding:6px 10px;border-radius:4px;cursor:pointer;margin-top:6px;width:100%}.kill:active{background:var(--wine);color:#fff}
 .flash{animation:fl .35s}@keyframes fl{0%{box-shadow:0 0 0 4px var(--gold)}100%{}}
 </style>
 </head>
@@ -118,6 +119,7 @@ textarea{width:100%;height:42vh;font:12px/1.35 ui-monospace,Menlo,monospace;back
 <div class="tools"><button class="btn pri" id="bexport">Export ranking (text)</button><button class="btn warn" id="breset">Reset all</button></div>
 <div id="exportbox" style="display:none;max-width:760px;margin:8px auto"><textarea id="extext" readonly></textarea><div class="tools"><button class="btn pri" id="bcopy">Copy to clipboard</button><button class="btn" id="bclose">Close</button></div></div>
 <div class="live" id="rlist" style="max-width:700px"></div>
+<div class="live" id="outbox" style="max-width:700px"></div>
 </section>
 <section class="view" id="v-src">
 <p class="note">Every picture is an antique print, drawing or painting. Each entry gives title, maker, date, holding institution or book, licence, and links back to the source. Tap a picture to enlarge it. Pictures are shown downsized here (the originals are linked).</p>
@@ -141,14 +143,18 @@ const BY={};ITEMS.forEach((it,i)=>{it.i=i;BY[it.n]=it});
 const KEY='wp_salon_v1';
 const TIERBASE={Love:1650,Like:1550,Meh:1450,No:1350};
 let S=load();
-function fresh(){return {rt:{},gm:{},wl:{},tier:{},duels:0,hist:[],last:{},filter:'both'}}
-function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&s.rt)return Object.assign(fresh(),s)}catch(e){}return fresh()}
+function fresh(){return {rt:{},gm:{},wl:{},tier:{},duels:0,hist:[],last:{},filter:'both',out:{}}}
+function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&s.rt){const o=Object.assign(fresh(),s);if(!o.out)o.out={};return o}}catch(e){}return fresh()}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 const R=n=>S.rt[n]==null?1500:S.rt[n];
 const G=n=>S.gm[n]||0;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-function pool(){return ITEMS.filter(it=>S.filter==='both'||it.theme===S.filter)}
+function pool(){return ITEMS.filter(it=>!S.out[it.n]&&(S.filter==='both'||it.theme===S.filter))}
+function outList(){return ITEMS.filter(it=>S.out[it.n])}
+function kill(n){const it=BY[n];if(!it)return;S.out[n]=true;S.lastKill=n;save();cur=null;tcur=null;closeModal();const v=views.find(x=>$('v-'+x).classList.contains('on'));render(v);toastUndo('Knocked out: #'+n+' (terrifying)')}
+function unkill(n){delete S.out[n];save();cur=null;tcur=null;const v=views.find(x=>$('v-'+x).classList.contains('on'));render(v)}
+function toastUndo(t){const e=$('toast');e.innerHTML=esc(t)+' · <u id="tundo2" style="cursor:pointer">Undo</u>';e.style.pointerEvents='auto';e.classList.add('on');clearTimeout(window.__tt);$('tundo2').onclick=()=>{if(S.lastKill!=null){unkill(S.lastKill);S.lastKill=null;e.classList.remove('on');e.style.pointerEvents='none'}};window.__tt=setTimeout(()=>{e.classList.remove('on');e.style.pointerEvents='none'},5000)}
 function toast(t){const e=$('toast');e.textContent=t;e.classList.add('on');setTimeout(()=>e.classList.remove('on'),1800)}
 function short(it){return it.title.length>78?it.title.slice(0,75)+'…':it.title}
 function who(it){const a=it.artist.length>60?it.artist.slice(0,57)+'…':it.artist;return a+' · '+shortdate(it.date)}
@@ -176,14 +182,14 @@ function pick(){
  const B=C[Math.floor(Math.random()*Math.min(3,C.length))].it;
  return Math.random()<.5?[A,B]:[B,A];
 }
-function cardHTML(it,idx){const l=srcLine(it);return '<div class="card" data-i="'+idx+'"><div class="pic"><img src="'+IMG[it.i]+'" alt="'+esc(it.title)+'"></div><div class="cap"><b>'+esc(short(it))+'</b><span>'+esc(who(it))+'</span><span>#'+it.n+' · '+esc(it.theme)+' · <a href="'+esc(l[1])+'" target="_blank" rel="noopener" data-stop="1">'+esc(l[0])+'</a> · <button class="linkbtn" data-info="'+it.n+'">full citation</button></span></div></div>'}
+function cardHTML(it,idx){const l=srcLine(it);return '<div class="card" data-i="'+idx+'"><div class="pic"><img src="'+IMG[it.i]+'" alt="'+esc(it.title)+'"></div><div class="cap"><b>'+esc(short(it))+'</b><span>'+esc(who(it))+'</span><span>#'+it.n+' · '+esc(it.theme)+' · <a href="'+esc(l[1])+'" target="_blank" rel="noopener" data-stop="1">'+esc(l[0])+'</a> · <button class="linkbtn" data-info="'+it.n+'">full citation</button></span><button class="kill" data-kill="'+it.n+'">😱 Holy sh*t, that’s terrifying</button></div></div>'}
 function renderDuel(){
  if(!cur)cur=pick();
  const el=$('duel');
  if(!cur){el.innerHTML='<div class="done">Not enough pictures in this filter.</div>';}
  else{el.innerHTML=cardHTML(cur[0],0)+cardHTML(cur[1],1);
   el.querySelectorAll('.card').forEach(c=>c.onclick=e=>{
-   const t=e.target;if(t.dataset.stop)return;if(t.dataset.info){e.stopPropagation();openModal(+t.dataset.info);return}
+   const t=e.target;if(t.dataset.kill){e.stopPropagation();kill(+t.dataset.kill);return}if(t.dataset.stop)return;if(t.dataset.info){e.stopPropagation();openModal(+t.dataset.info);return}
    choose(+c.dataset.i)});
  }
  const P=pool(),target=P.length*4,seen=P.filter(it=>G(it.n)>0).length;
@@ -228,7 +234,8 @@ function renderTier(){
  const it=tcur,l=srcLine(it);
  el.innerHTML='<div class="card"><div class="pic" data-info="'+it.n+'" style="cursor:zoom-in"><img src="'+IMG[it.i]+'" alt="'+esc(it.title)+'"></div><div class="cap"><b>'+esc(short(it))+'</b><span>'+esc(who(it))+'</span><span>#'+it.n+' · <a href="'+esc(l[1])+'" target="_blank" rel="noopener">'+esc(l[0])+'</a> · <button class="linkbtn" data-info="'+it.n+'">full citation</button></span></div></div>'+
  '<div class="tbtns"><button class="Love" data-t="Love">♥ Love</button><button class="Like" data-t="Like">Like</button><button class="Meh" data-t="Meh">Meh</button><button class="No" data-t="No">No</button></div>'+
- '<div class="tools"><button class="btn" id="tskip">Skip for now</button><button class="btn" id="tundo">Undo</button></div>';
+ '<div class="tools"><button class="btn kill" id="tkill" style="max-width:520px">😱 Holy sh*t, that’s terrifying</button></div><div class="tools"><button class="btn" id="tskip">Skip for now</button><button class="btn" id="tundo">Undo</button></div>';
+ $('tkill').onclick=()=>kill(it.n);
  el.querySelectorAll('[data-info]').forEach(b=>b.onclick=()=>openModal(+b.dataset.info));
  el.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>setTier(it,b.dataset.t));
  $('tskip').onclick=()=>{tcur=null;renderTier()};
@@ -245,11 +252,13 @@ function renderRank(){
  const P=ranked(pool());
  $('rprog').innerHTML=S.duels?('Based on <b>'+S.duels+'</b> duels. Tap a picture for its full citation.'):'No duels yet — play a few, or sort tiers first.';
  $('rlist').innerHTML=P.map((it,i)=>rowHTML(it,i+1)).join('');bindRows($('rlist'));
+ const O=outList();$('outbox').innerHTML=O.length?('<h2>Knocked out — too terrifying ('+O.length+')</h2>'+O.map(it=>'<div class="row"><img src="'+THUMB[it.i]+'" alt="" data-peek="'+it.n+'"><div class="tx"><b>#'+it.n+' · '+esc(short(it))+'</b><span>'+esc(who(it))+'</span></div><button class="btn" data-restore="'+it.n+'">Bring back</button></div>').join('')):'';
+ $('outbox').querySelectorAll('[data-restore]').forEach(b=>b.onclick=()=>unkill(+b.dataset.restore));$('outbox').querySelectorAll('[data-peek]').forEach(b=>b.onclick=()=>openModal(+b.dataset.peek));
 }
 function exportText(){
  const P=ranked(pool());
  const head='My ranking — Whale & Petunia Salon ('+(S.filter==='both'?'whales + petunias':S.filter.toLowerCase()+'s')+'), '+S.duels+' duels\n\n';
- return head+P.map((it,i)=>(i+1)+'. [#'+it.n+'] '+it.title+' — '+it.artist+', '+it.date+' — score '+Math.round(R(it.n))+(S.tier[it.n]?' — tier '+S.tier[it.n]:'')+' — '+srcLine(it)[1]).join('\n')+'\n'
+ return head+P.map((it,i)=>(i+1)+'. [#'+it.n+'] '+it.title+' — '+it.artist+', '+it.date+' — score '+Math.round(R(it.n))+(S.tier[it.n]?' — tier '+S.tier[it.n]:'')+' — '+srcLine(it)[1]).join('\n')+'\n'+(outList().length?'\nKnocked out as too terrifying:\n'+outList().map(it=>'- [#'+it.n+'] '+it.title+' — '+srcLine(it)[1]).join('\n')+'\n':'')
 }
 $('bexport').onclick=()=>{$('extext').value=exportText();$('exportbox').style.display='block';$('exportbox').scrollIntoView({behavior:'smooth'})};
 $('bclose').onclick=()=>{$('exportbox').style.display='none'};
@@ -276,9 +285,9 @@ function openModal(n,list){
 function drawModal(n){
  const it=BY[n];
  $('sheet').innerHTML='<button class="x" id="mx" aria-label="Close">×</button><img class="big" src="'+IMG[it.i]+'" alt="'+esc(it.title)+'"><h3>#'+it.n+' · '+esc(it.title)+'</h3>'+
- '<div style="font-size:.8rem;color:var(--soft)">'+(S.tier[it.n]?'Tier: '+S.tier[it.n]+' · ':'')+'Score '+Math.round(R(it.n))+' · '+G(it.n)+' duel'+(G(it.n)===1?'':'s')+(S.wl[it.n]?' · won '+S.wl[it.n][0]+', lost '+S.wl[it.n][1]:'')+'</div>'+citeHTML(it)+
+ '<div style="font-size:.8rem;color:var(--soft)">'+(S.tier[it.n]?'Tier: '+S.tier[it.n]+' · ':'')+'Score '+Math.round(R(it.n))+' · '+G(it.n)+' duel'+(G(it.n)===1?'':'s')+(S.wl[it.n]?' · won '+S.wl[it.n][0]+', lost '+S.wl[it.n][1]:'')+'</div>'+'<div class="tools" style="margin:8px 0 0"><button class="btn kill" id="mkill">'+(S.out[it.n]?'Bring this one back':'😱 Holy sh*t, that’s terrifying')+'</button></div>'+citeHTML(it)+
  (mlist?'<div class="navarr"><button class="btn" id="mprev">‹ Higher</button><span style="align-self:center;font-size:.8rem;color:var(--soft)">rank '+(mpos+1)+' of '+mlist.length+'</span><button class="btn" id="mnext">Lower ›</button></div>':'');
- $('mx').onclick=closeModal;
+ $('mx').onclick=closeModal;$('mkill').onclick=()=>{if(S.out[it.n]){unkill(it.n);drawModal(it.n)}else kill(it.n)};
  if(mlist){$('mprev').onclick=()=>{if(mpos>0){mpos--;drawModal(mlist[mpos]);$('modal').scrollTop=0}};$('mnext').onclick=()=>{if(mpos<mlist.length-1){mpos++;drawModal(mlist[mpos]);$('modal').scrollTop=0}}}
 }
 function closeModal(){$('modal').classList.remove('on');document.body.style.overflow=''}
