@@ -19,7 +19,7 @@ button{-webkit-appearance:none;appearance:none}
 .ask .tools{display:flex;gap:8px;justify-content:flex-end}
 .ask .btn{min-height:44px}
 html,body{margin:0;background:var(--cream);color:var(--ink);font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;font-size:16px;line-height:1.4}
-body{padding:env(safe-area-inset-top) env(safe-area-inset-right) calc(14px + env(safe-area-inset-bottom)) env(safe-area-inset-left);min-height:100vh;min-height:-webkit-fill-available}
+body{padding:0 env(safe-area-inset-right) calc(14px + env(safe-area-inset-bottom)) env(safe-area-inset-left);min-height:100vh;min-height:-webkit-fill-available}
 header{text-align:center;padding:8px 10px 2px}
 h1{margin:0;font-weight:400;font-size:1.15rem;letter-spacing:.08em;text-transform:uppercase}
 h1 small{display:block;font-size:.66rem;letter-spacing:.14em;color:var(--soft);margin-top:1px;font-style:italic;text-transform:none}
@@ -215,15 +215,50 @@ body.induel nav{margin:2px 4px 0}
 .toast{display:flex;align-items:center;gap:10px}
 .toast .tub{font:inherit;font-weight:700;color:#fff7e6;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.5);border-radius:8px;min-height:44px;min-width:64px;padding:0 14px}
 body.induel .toast{left:4px;right:4px;bottom:calc(env(safe-area-inset-bottom) + 3px);transform:none;border-radius:10px;min-height:54px;padding:4px 8px 4px 14px;justify-content:space-between;white-space:normal;z-index:120}
+
+/* ---- sticky chrome (always-visible bars) ---- */
+html{scroll-padding-top:calc(var(--tbh,56px) + 56px);scroll-padding-bottom:120px}
+#topbar{position:-webkit-sticky;position:sticky;top:0;z-index:40;background:var(--cream);padding-top:env(safe-area-inset-top);box-shadow:0 1px 0 var(--rule),0 3px 8px -4px rgba(60,40,10,.35)}
+#topbar header{padding:3px 10px 0}
+#topbar h1{font-size:1rem;line-height:1.25}
+#topbar h1 small{display:none}
+@media(min-width:900px){#topbar h1 small{display:block}}
+#topbar nav{margin:0 8px;border-bottom:0}
+#topbar nav button{min-height:44px;padding:2px 0}
+body.induel #topbar nav{margin:0 4px}
+.csticky{position:-webkit-sticky;position:sticky;top:var(--tbh,56px);z-index:30;background:var(--cream);margin:0 -8px;padding:4px 8px 5px;box-shadow:0 1px 0 var(--rule),0 3px 8px -4px rgba(60,40,10,.3);max-height:calc(var(--vh,1vh)*44);overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+.csticky>.tools{margin:0}
+.csticky .fbox{margin:6px 0 0}
+.csticky .jump{max-height:none;overflow:visible;margin:6px 0 0}
+.abwrap{position:-webkit-sticky;position:sticky;bottom:0;z-index:30;margin:4px -8px 0;padding:0 8px calc(4px + env(safe-area-inset-bottom));background:var(--cream);box-shadow:0 -1px 0 var(--rule),0 -3px 8px -4px rgba(60,40,10,.3)}
+.abwrap .abar{position:static;margin:0;padding:6px 0 4px;background:none}
+.abwrap .ab{min-height:50px}
+.abwrap .tools.nav2{margin:0;gap:6px;flex-wrap:nowrap}
+.abwrap .nav2 .btn{min-height:38px;padding:4px 8px}
+body.incrops .toast{bottom:calc(130px + env(safe-area-inset-bottom))}
+@media(max-width:700px){
+ .corig{max-width:calc(100% - 44px)}
+ .cropbox{max-width:calc(100% - 44px)}
+}
+/* dialogs: title + close pinned top, actions pinned bottom */
+.mhead{position:-webkit-sticky;position:sticky;top:env(safe-area-inset-top,0px);z-index:8;display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin:-10px -12px 6px;padding:10px 8px 6px 12px;background:var(--paper);box-shadow:0 1px 0 var(--rule),0 3px 8px -4px rgba(60,40,10,.3)}
+.mhead h3{margin:0;flex:1;min-width:0}
+.mhead .x{position:static;flex:none;font-size:1.9rem;min-width:44px;min-height:44px;border:1px solid var(--rule);background:#fff;padding:0 8px}
+.mfoot{position:-webkit-sticky;position:sticky;bottom:0;z-index:8;display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;margin:10px -12px -16px;padding:6px 10px calc(6px + env(safe-area-inset-bottom));background:var(--paper);box-shadow:0 -1px 0 var(--rule),0 -3px 8px -4px rgba(60,40,10,.3)}
+.mfoot .btn{min-height:44px;margin:0}
+.mfoot .mcount{font-size:.8rem;color:var(--soft)}
+.dshead{position:-webkit-sticky;position:sticky;top:calc(-10px - env(safe-area-inset-top));z-index:5;margin:calc(-10px - env(safe-area-inset-top)) -12px 8px;padding:calc(10px + env(safe-area-inset-top)) 12px 6px;background:var(--cream);box-shadow:0 1px 0 var(--rule)}
 </style>
 </head>
 <body>
+<div id="topbar">
 <header>
 <h1>Wall Layout Salon<small>which wall of eight would you hang?</small></h1>
 </header>
+<nav id="nav"><button data-v="crops" class="on">Crops</button><button data-v="duel">Duel</button><button data-v="rank">Ranking</button><button data-v="src">Sources</button><button data-v="set">Setup</button></nav>
+</div>
 <div class="banner" id="banner"></div>
 <div class="banner" id="cbanner"></div>
-<nav id="nav"><button data-v="crops" class="on">Crops</button><button data-v="duel">Duel</button><button data-v="rank">Ranking</button><button data-v="src">Sources</button><button data-v="set">Setup</button></nav>
 <main>
 <section class="view" id="v-crops"><div id="crops"></div></section>
 <section class="view" id="v-duel">
@@ -561,7 +596,7 @@ function wallsNote(){
  return head+'Working out what would help…'}
 function updBanners(){const b=bannerHTML();const el=$('banner');el.className='banner '+b[0];el.textContent=b[1];const cb=cropBanner(),ce=$('cbanner');ce.className='banner '+cb[0];ce.textContent=cb[1];const oc=curView()==='crops';el.style.display=oc?'none':'';ce.style.display=oc?'none':'';if($('cbn2')){$('cbn2').className='cbn '+cb[0];$('cbn2').textContent=cb[1]}
  if($('dbanners')){$('dbanners').innerHTML='<div class="dban '+b[0]+'" data-go2="set">'+esc(b[1])+'</div><div class="dban '+cb[0]+'" data-go2="crops">'+esc(cb[1])+'</div>';const wn=wallsNote();if(wn)$('dbanners').innerHTML+='<div class="dban warn" data-go2="crops">'+esc(wn)+'</div>';$('dinfo').classList.toggle('alert',cb[0]==='warn'||b[0]==='warn'||!!wn)}}
-function render(v){document.body.classList.toggle('induel',v==='duel');if(v!=='duel')$('dsheet').classList.remove('on');if(v!=='crops')ensureWalls();updBanners();
+function render(v){document.body.classList.toggle('induel',v==='duel');document.body.classList.toggle('incrops',v==='crops');setTB();if(v!=='duel')$('dsheet').classList.remove('on');if(v!=='crops')ensureWalls();updBanners();
  if(v==='crops')renderCrops();if(v==='duel')renderDuel();if(v==='rank')renderRank();if(v==='src')renderSrc();if(v==='set')renderSet()}
 // ---------- duel
 let cur=null;
@@ -760,16 +795,16 @@ function layoutRank(L){const P=ranked(ALL);const i=P.findIndex(x=>x.sig===L.sig)
 function drawModal(keepScroll){
  const L=ALLMAP[M.sig]||parseSig(M.sig);if(!L){closeModal();return}
  const st=$('modal').scrollTop,g=geom(L.kinds),rk=layoutRank(L);
- let h='<button class="x" id="mx" aria-label="Close">×</button><h3>'+esc(L.id)+' · wall'+(L.custom?' (custom)':'')+'</h3>'+
+ let h='<div class="mhead"><h3>'+esc(L.id)+' · wall'+(L.custom?' (custom)':'')+'</h3><button class="x" id="mx" aria-label="Close">×</button></div>'+
  '<div class="meta">'+(rk?'Rank '+rk[0]+' of '+rk[1]+' · ':'')+'score '+Math.round(R(L.sig))+' · '+G(L.sig)+' duel'+(G(L.sig)===1?'':'s')+' · '+pattOf(L)+' · '+themeCounts(L)+' · '+orientText(L)+'</div>'+
  '<div class="meta">Drawn to scale: 4 columns × 2 rows, '+(Math.round(g.W*10)/10)+' × '+(Math.round(g.H*10)/10)+' in overall. Tap a frame to adjust or swap.</div>'+
  '<div class="bigwall H">'+wallHTML(L,{nums:true,sel:M.sel})+'</div><div id="panel"></div>'+
- '<div class="tools" style="margin-top:4px">'+(S.out[L.sig]?'':'<button class="btn warn sm" id="mhate">😱 Hate it</button>')+(L.custom?'<button class="btn sm" id="mdel">Delete this custom wall</button>':'')+'</div>'+
  '<ol class="plist">'+L.items.map((n,i)=>{const it=BY[n],f=g.f[i],cr=cropV(n,f.k,L.vars[i]);
   return '<li data-s="'+i+'" class="'+(M.sel===i?'sel':'')+'"><span class="n">'+(i+1)+'</span><img src="'+URLS[it.i]+'" alt=""><div class="t"><b>#'+n+' · '+esc(it.title)+'</b><br>'+esc(it.artist)+' · '+esc(it.date)+'<br>'+posText(L,i)+' · '+SHW[f.k]+' slot ('+esc(KNAME[f.k])+')'+(L.vars[i]?' · crop option '+(L.vars[i]+1):'')+' · shows '+Math.round((1-cr.cut)*100)+'% of the picture'+(cr.cut>HEAVY?' <span class="warnc">✂ tight crop</span>':'')+'<br>'+esc(STYLES[it.style])+' · '+esc(it.rights)+'<br>'+citeLinks(it)+'</div></li>'}).join('')+'</ol>'+
- (M.list?'<div class="tools"><button class="btn" id="mprev">‹ Higher</button><span style="align-self:center;font-size:.8rem;color:var(--soft)">'+(M.list.indexOf(M.sig)+1)+' of '+M.list.length+'</span><button class="btn" id="mnext">Lower ›</button></div>':'');
+ '<div class="mfoot">'+(M.sel!=null?'<button class="btn pri" id="mfdone">✓ Done with frame '+(M.sel+1)+'</button>':'')+(M.list?'<button class="btn" id="mprev">‹ Higher</button><span class="mcount">'+(M.list.indexOf(M.sig)+1)+' of '+M.list.length+'</span><button class="btn" id="mnext">Lower ›</button>':'')+(S.out[L.sig]?'':'<button class="btn warn sm" id="mhate">😱 Hate it</button>')+(L.custom?'<button class="btn sm" id="mdel">Delete this custom wall</button>':'')+'<button class="btn'+(M.sel!=null?'':' pri')+'" id="mdone">Close ✕</button></div>';
  $('sheet').innerHTML=h;
- $('mx').onclick=closeModal;
+ $('mx').onclick=closeModal;$('mdone').onclick=closeModal;
+ if($('mfdone'))$('mfdone').onclick=()=>{M.sel=null;drawModal(true)};
  if($('mhate'))$('mhate').onclick=()=>hate(L.sig);
  if($('mdel'))$('mdel').onclick=()=>{delete S.custom[L.sig];save();rebuild();closeModal()};
  $('sheet').querySelectorAll('.fr[data-s],.plist li[data-s]').forEach(e=>e.onclick=()=>{M.sel=M.sel===+e.dataset.s&&e.classList.contains('fr')?null:+e.dataset.s;drawModal(true);if(M.sel!=null&&$('panel'))$('panel').scrollIntoView({block:'center',behavior:'smooth'})});
@@ -897,13 +932,15 @@ function renderCrops(){
  const fl=[f.st!=='all'?STL[f.st].toLowerCase():'all'].concat(f.shape!=='all'?[SHN[f.shape].toLowerCase()]:[],f.theme!=='all'?[f.theme.toLowerCase()+'s']:[]).join(' · ');
  let h='<div class="cintro">'+(S.set.crSrc==='locked'?'<b>'+esc(cropBanner()[1])+'</b> Walls only use crops you approve.':'<b>Step 1: choose your crops.</b> Walls only use crops you approve (change in the panel below).')+'</div>'+
  '<div class="prog">Reviewed <b id="crev">'+rev+'</b> of <b>'+all.length+'</b> · <span class="okc">✓ '+cnt.approved+' approved</span> · <span class="badc">✕ '+cnt.rejected+' rejected</span> · ⏭ '+cnt.skipped+' skipped<div class="bar"><i style="width:'+Math.round(100*rev/Math.max(1,all.length))+'%"></i></div></div>'+
- '<div class="tools nowrap" style="margin:6px 0"><button class="chip" id="cfo">Filter: '+esc(fl)+' '+(CFO?'▴':'▾')+'</button><button class="chip" id="cjb">Jump list '+(CJ?'▴':'▾')+'</button></div>';
+ '<div class="csticky" id="csticky"><div class="tools nowrap" style="margin:0"><button class="chip" id="cfo">Filter: '+esc(fl)+' '+(CFO?'▴':'▾')+'</button><button class="chip" id="cjb">Jump list '+(CJ?'▴':'▾')+'</button></div>';
  if(CFO)h+='<div class="fbox">'+chipRow('st',[['unrev','Unreviewed ('+cnt.unrev+')'],['approved','Approved ('+cnt.approved+')'],['rejected','Rejected ('+cnt.rejected+')'],['skipped','Skipped ('+cnt.skipped+')'],['all','All ('+all.length+')']])+chipRow('shape',[['all','All shapes'],['S','Square'],['L','Horizontal rect'],['P','Vertical rect']])+chipRow('theme',[['all','Whales + petunias'],['Whale','Whales'],['Petunia','Petunias']])+'</div>';
  if(CJ)h+='<div class="jump" id="jump">'+(list.length?list.map(q=>{const cr=cropV(q.n,q.k,q.v),st=stOf(q.x);return '<button class="jc st-'+st+(c&&q.id===c.id?' cur':'')+'" data-id="'+q.id+'" title="#'+q.n+' '+SHN[q.k].toLowerCase()+' option '+(q.v+1)+': '+STL[st]+'"><div class="jt '+q.k+'"><img alt="" src="'+URLS[BY[q.n].i]+'" style="'+imgStyle(cr)+'"></div><i class="jb">'+({approved:'✓',rejected:'✕',skipped:'⏭',unrev:'•'})[st]+'</i><span>#'+q.n+(q.v?' ·'+(q.v+1):'')+' '+SHS[q.k]+'</span></button>'}).join(''):'<div class="done">No crops match this filter.</div>')+'</div>';
+ h+='</div>';let AB='';
  if(c){h+=ccardHTML(c,list);
   const x=getX(c);
-  h+='<div class="abar"><button class="ab app" id="capp">'+(x.mod?'✓ Approve with my adjustment':'✓ Approve')+'</button><button class="ab rej" id="crej">✕ Never use</button><button class="ab skp" id="cskp">⏭ Skip</button></div>'+
-  '<div class="tools nav2"><button class="btn" id="cback">‹ Back</button><button class="btn" id="cundo"'+(CUNDO.length?'':' disabled')+'>↶ Undo</button><button class="btn" id="cnext">Next ›</button></div>'+
+  AB='<div class="abwrap"><div class="abar"><button class="ab app" id="capp">'+(x.mod?'✓ Approve with my adjustment':'✓ Approve')+'</button><button class="ab rej" id="crej">✕ Never use</button><button class="ab skp" id="cskp">⏭ Skip</button></div>'+
+  '<div class="tools nav2"><button class="btn" id="cback">‹ Back</button><button class="btn" id="cundo"'+(CUNDO.length?'':' disabled')+'>↶ Undo</button><button class="btn" id="cnext">Next ›</button></div></div>';
+  h+=
   '<div class="tools"><button class="btn sm" id="cadd">＋ Add another crop option for this picture</button>'+(c.v>0?'<button class="btn sm warn" id="cdel">Delete this option</button>':'')+'</div>'+
   '<div class="khint">Keyboard: A approve · R reject · S skip · arrows move the crop (Shift = more) · + / − zoom · U undo · B back · N next</div>';
   if(!list.length)h+='<div class="done">Nothing in this filter. Change the filter above.</div>'}
@@ -913,7 +950,7 @@ function renderCrops(){
  '<div class="meta" style="margin-top:6px">Automatic uses the default crops until you approve one, then only approved crops. Rejected crops are never used.</div><div class="cbn '+cb[0]+'" id="cbn2">'+esc(cb[1])+'</div></div>'+
  '<div class="panel"><h4>Save, restore, reset</h4><div class="tools" style="margin:4px 0"><button class="btn sm" id="cexp">Export crop list</button><button class="btn sm" id="cimp">Import pasted list</button><button class="btn sm warn" id="crst">'+(S.set.crSrc==='locked'?'Reset to locked list':'Clear my reviews')+'</button></div>'+
  '<textarea class="s" id="ctext" placeholder="Export fills this box. Paste a crop list here and tap Import to restore it."></textarea><div class="tools" style="margin:4px 0"><button class="btn sm" id="ccopy">Copy</button></div><div class="meta" id="cmsg2" style="text-align:center"></div></div>';
- $('crops').innerHTML=h;bindCrops();updBanners()}
+ $('crops').innerHTML=h+AB;bindCrops();updBanners()}
 function bindGesture(el,o){
  const pts=new Map();let g=null,moved=false;
  const dist=()=>{const a=[...pts.values()];return Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)};
@@ -999,7 +1036,8 @@ applyScores();rebuild();
 function flushSave(){if(saveT){clearTimeout(saveT);saveT=null;save()}}
 window.addEventListener('pagehide',flushSave);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)flushSave()});
-function setVH(){document.documentElement.style.setProperty('--vh',(window.innerHeight*.01)+'px')}setVH();window.addEventListener('resize',setVH);window.addEventListener('orientationchange',setVH);
+function setTB(){const t=document.getElementById('topbar');if(t)document.documentElement.style.setProperty('--tbh',t.offsetHeight+'px')}
+function setVH(){document.documentElement.style.setProperty('--vh',(window.innerHeight*.01)+'px');setTB()}setVH();window.addEventListener('load',setTB);if(window.ResizeObserver)new ResizeObserver(setTB).observe(document.getElementById('topbar'));window.addEventListener('resize',setVH);window.addEventListener('orientationchange',setVH);
 window.addEventListener('focus',()=>{if(!M)refresh(false)});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&!M)refresh(false)});
 show(!anyReviewed()&&S.duels===0?'crops':'duel');
