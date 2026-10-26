@@ -100,7 +100,7 @@ h3{margin:0;font-size:1rem}
 .wallbox{background:var(--paper);border:1px solid var(--rule);border-radius:6px;padding:4px;box-shadow:0 2px 8px rgba(60,40,10,.12)}
 .acts{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:8px 0}
 .acts .btn{padding:0 4px;font-size:.84rem;line-height:1.15}
-.acts .btn.big{grid-column:span 3;min-height:52px;font-size:1rem}
+.acts .btn.big{grid-column:span 2;min-height:52px;font-size:1rem}
 .stat{font-size:.8rem;padding:7px 10px;border:1px solid var(--rule);border-radius:6px;background:var(--paper);margin:6px 0;color:var(--soft)}
 .stat.ok{border-color:var(--sage);color:#33432b}.stat.warn{border-color:#b3261e;color:#8a1c16}
 .stat ul{margin:4px 0 0;padding-left:18px}
@@ -180,6 +180,13 @@ a{color:var(--wine)}
 @media(max-width:899px) and (min-height:700px){.bgrid .colL,.bgrid .colR{display:contents}.bgrid #wallbox{position:sticky;top:51px;z-index:8;box-shadow:0 6px 10px -4px rgba(60,40,10,.3)}}
 @media(min-width:900px){.bgrid .colL{position:sticky;top:60px}}
 
+/* whole-painting moves */
+.ghost.unit{position:fixed!important;left:0;top:0;border:0;border-radius:0;background:linear-gradient(135deg,#dcbf92,#c39d6b 55%,#cfae80);opacity:.93;box-shadow:0 10px 22px rgba(0,0,0,.5);transform:translate(-50%,-55%) scale(1.04);z-index:300;pointer-events:none}
+.mvbox{margin:6px 0;padding:6px 8px;border:1px solid var(--rule);border-radius:8px;background:rgba(255,255,255,.45)}
+.mvl{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:2px 0}
+.mvl>span{flex:1 0 100%;font-size:.74rem;color:var(--soft);letter-spacing:.02em}
+.mvl .chip{flex:1 1 auto;min-height:44px}
+
 </style>
 </head>
 <body>
@@ -236,7 +243,7 @@ function geom(kinds){
   for(var j=0;j<4;j++){var ch=kinds[r*4+j],k=KS[ch],kd=KD[k];
    f.push({k:k,o:ch,x:x,y:y0+(rh[r]-kd.h)/2,w:kd.w,h:kd.h,line:r,j:j,idx:r*4+j});x+=kd.w+gaps[r]}}
  var W=T,H=rh[0]+rowGap+rh[1];
- return GC[kinds]={f:f,W:W,H:H,gaps:gaps,rowGap:rowGap,ok:gl<=GMAX+1e-9&&gt>=GMIN-1e-9,worst:Math.max(gl,gt)};
+ return GC[kinds]={nat:nat,f:f,W:W,H:H,gaps:gaps,rowGap:rowGap,ok:gl<=GMAX+1e-9&&gt>=GMIN-1e-9,worst:Math.max(gl,gt)};
 }
 // ---------- scores
 var SCRAW=null;
@@ -294,7 +301,7 @@ var _stripped=0;
 // ---------- state
 var ST;
 function freshB(){return {kinds:'RRSRSRSR',items:[0,0,0,0,0,0,0,0],vars:[0,0,0,0,0,0,0,0],locks:[false,false,false,false,false,false,false,false],picks:[],curId:null,name:'',liked:false}}
-function fresh(){return {b:freshB(),saved:[],seq:0,ui:{lv:'list',lf:'all',ls:'rank',rej:false,tapswap:true,sf:'new',srcOpen:false},crTxt:null,scTxt:null}}
+function fresh(){return {b:freshB(),saved:[],seq:0,ui:{lv:'list',lf:'all',ls:'rank',rej:false,tapswap:true,move:'unit',drop:'swap',sf:'new',srcOpen:false},crTxt:null,scTxt:null}}
 function load(){try{var s=JSON.parse(localStorage.getItem(KEY));if(s&&s.b){var o=fresh();Object.keys(o).forEach(function(k){if(s[k]!=null)o[k]=s[k]});o.ui=Object.assign(fresh().ui,s.ui||{});o.b=Object.assign(freshB(),s.b);return o}}catch(e){}return fresh()}
 var saveT=null;
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(ST))}catch(e){}}
@@ -351,6 +358,18 @@ function placePic(b,i,n){var old=b.items[i],j=b.items.indexOf(n);
 function swapSlots(b,i,j){var t=b.items[i];b.items[i]=b.items[j];b.items[j]=t;refit(b,i);refit(b,j)}
 function swapKinds(b,i,j){var c=b.kinds.split('');var t=c[i];c[i]=c[j];c[j]=t;b.kinds=c.join('');var l=b.locks[i];refit(b,i);refit(b,j)}
 function rotate(b,i){var c=b.kinds.split('');if(c[i]==='R')c[i]='V';else if(c[i]==='V')c[i]='R';else return;b.kinds=c.join('');refit(b,i)}
+// ---- whole-painting moves (frame shape + orientation + crop + picture + lock travel together)
+function swapUnits(b,i,j){if(i===j)return;var c=b.kinds.split(''),t=c[i];c[i]=c[j];c[j]=t;b.kinds=c.join('');
+ [b.items,b.vars,b.locks].forEach(function(a){var x=a[i];a[i]=a[j];a[j]=x})}
+function insertUnit(b,i,j){if(i===j)return;var c=b.kinds.split('');
+ [c,b.items,b.vars,b.locks].forEach(function(a){var x=a.splice(i,1)[0];a.splice(j,0,x)});b.kinds=c.join('')}
+function insertPic(b,i,j){if(i===j)return;[b.items,b.vars].forEach(function(a){var x=a.splice(i,1)[0];a.splice(j,0,x)});for(var q=0;q<8;q++)refit(b,q)}
+// mode: 'unit' (painting + frame) | 'pic' (picture only); how: 'swap' | 'ins'
+function relocate(b,i,j,mode,how){if(i===j)return;
+ if(mode==='unit')return how==='ins'?insertUnit(b,i,j):swapUnits(b,i,j);
+ return how==='ins'?insertPic(b,i,j):swapSlots(b,i,j)}
+function rowWarn(kinds){var g=geom(kinds);if(g.ok)return '';var w=g.nat,wide=w[0]>=w[1]?1:2,nar=wide===1?2:1;
+ return 'Row '+nar+' is '+Math.abs(w[0]-w[1])+' in narrower than row '+wide+', so its gaps stretch to '+g.worst.toFixed(1)+' in (over '+GMAX+'). Swap a square from row '+nar+' with a rectangle from row '+wide+' to even the rows out.'}
 // ---- solvers
 function solveShapes(pics,nS,nR){
  var order=shuf(pics.map(function(_,i){return i})),res=new Array(pics.length);
@@ -409,6 +428,18 @@ function planPositions(b){
  var place=[];F.forEach(function(si){place.push({si:si,n:0,k:kindShape(b,si)})});
  order.forEach(function(i){var si=res[i];place.filter(function(x){return x.si===si})[0].n=pics[i]});
  return {kinds:b.kinds,place:place}}
+function planUnitShuffle(b){
+ var F=freeIdx(b);if(F.length<2)return {err:'Unlock at least two frames to shuffle painting positions.'};
+ var best=null,bs=1e9,N=0;
+ for(var t=0;t<240;t++){var p=shuf(F),c=b.kinds.split('');
+  if(p.every(function(si,j){return si===F[j]}))continue;
+  F.forEach(function(si,j){c[si]=b.kinds[p[j]]});var kk=c.join(''),g=geom(kk);
+  var sc=(g.ok?0:100+g.worst)+Math.random();if(sc<bs){bs=sc;best={src:p,kinds:kk}}
+  if(g.ok&&++N>=14)break}
+ if(!best)return {err:'Nothing to shuffle: every unlocked painting would stay where it is.'};
+ return {F:F,src:best.src,kinds:best.kinds}}
+function applyUnitPlan(b,pl){var it=b.items.slice(),vr=b.vars.slice(),lk=b.locks.slice();
+ pl.F.forEach(function(si,j){var s=pl.src[j];b.items[si]=it[s];b.vars[si]=vr[s];b.locks[si]=lk[s]});b.kinds=pl.kinds}
 function planAutoFit(b){
  var F=freeIdx(b),lockedS=0;for(var i=0;i<8;i++)if(b.locks[i]&&b.kinds[i]==='S')lockedS++;
  var need=3-lockedS,best=null,bc=1e9;
@@ -430,6 +461,9 @@ function doShuffle(){var b=ST.b,pl=planShuffle(b);if(pl.err){showFail(pl.err);re
  toast(pl.leftover>0?'Shuffled. '+pl.leftover+' picked picture'+(pl.leftover>1?'s':'')+' left in the tray.':'Shuffled. Tap Shuffle again for another.')}
 function doPositions(){var b=ST.b,pl=planPositions(b);if(pl.err){showFail(pl.err);return}
  edit(function(x){applyPlan(x,pl)});UI.sel=null;UI.mode=null;renderBuilder();toast('Pictures reshuffled, frame shapes kept.')}
+function doUnitShuffle(){var b=ST.b,pl=planUnitShuffle(b);if(pl.err){showFail(pl.err);return}
+ edit(function(x){applyUnitPlan(x,pl)});UI.sel=null;UI.mode=null;renderBuilder();
+ var w=rowWarn(ST.b.kinds);toast('Painting positions shuffled. Each picture kept its frame and crop.'+(w?' Rows are uneven, see the note.':''))}
 function doAutoFit(){var b=ST.b,pl=planAutoFit(b);if(pl.err){showFail(pl.err);return}
  if(pl.kinds===b.kinds&&wallStatus(b).inv.length===0){toast('Already fits. Nothing to change.');return}
  var before=b.kinds;edit(function(x){x.kinds=pl.kinds;for(var i=0;i<8;i++)refit(x,i)});var ch=0;for(var i=0;i<8;i++)if(before[i]!==ST.b.kinds[i])ch++;toast('Auto-fit changed '+ch+' frame'+(ch===1?'':'s')+' to suit the pictures.')}
@@ -517,9 +551,12 @@ function renderBuilder(){
  var wc={whale:0,pet:0};b.picks.forEach(function(n){if(BY[n].theme==='Whale')wc.whale++;else wc.pet++});
  var h='<div class="bgrid"><div class="colL">';
  h+='<div class="wallbox" id="wallbox">'+wallHTML(b,{live:true,sel:sel,armed:UI.mode?sel:null})+'</div>';
- h+='<div class="note" style="text-align:center">'+Math.round(g.W)+' × '+Math.round(g.H)+' in · gaps '+Math.min(g.gaps[0],g.gaps[1]).toFixed(1)+'–'+Math.max(g.gaps[0],g.gaps[1]).toFixed(1)+' in · 3 squares + 5 rectangles'+(g.ok?'':' · <b style="color:#b3261e">gaps over 6 in on one row</b>')+'</div>';
- h+='<div class="acts"><button type="button" class="btn pri big" id="bshuf">🔀 Shuffle '+(placedCount(b)?'again':'my 8')+'</button><button type="button" class="btn" id="bpos">Shuffle positions only</button><button type="button" class="btn" id="bfit">Auto-fit frames</button><button type="button" class="btn'+(b.picks.length?'':' pri')+'" id="bpick">Pick 8 ('+b.picks.length+'/8)</button></div>';
- h+='<div class="hint">Tap a frame to select it. Drag a frame onto another to swap. Drag a tray picture onto a frame to place it.</div>';
+ h+='<div class="note" id="wnote" style="text-align:center">'+Math.round(g.W)+' × '+Math.round(g.H)+' in · row 1 '+g.nat[0]+' in, row 2 '+g.nat[1]+' in · gaps '+Math.min(g.gaps[0],g.gaps[1]).toFixed(1)+'–'+Math.max(g.gaps[0],g.gaps[1]).toFixed(1)+' in · 3 squares + 5 rectangles'+(g.ok?'':' · <b style="color:#b3261e">gaps over 6 in on one row</b>')+'</div>';
+ h+='<div class="acts"><button type="button" class="btn pri big" id="bshuf">🔀 Shuffle '+(placedCount(b)?'again':'my 8')+'</button><button type="button" class="btn" id="bpick">Pick 8 ('+b.picks.length+'/8)</button><button type="button" class="btn" id="bposu" title="Shuffle where each painting hangs; every picture keeps its own frame and crop">Shuffle positions</button><button type="button" class="btn" id="bpos">Shuffle pictures only</button><button type="button" class="btn" id="bfit">Auto-fit frames</button></div>';
+ var mv=ST.ui.move==='pic'?'pic':'unit',dp=ST.ui.drop==='ins'?'ins':'swap';
+ h+='<div class="mvbox"><div class="mvl"><span>Moving a frame moves</span><button type="button" class="chip'+(mv==='unit'?' on':'')+'" id="bmvu">Painting + frame</button><button type="button" class="chip'+(mv==='pic'?' on':'')+'" id="bmvp">Picture only</button></div>'+
+  '<div class="mvl"><span>Dropping on another frame</span><button type="button" class="chip'+(dp==='swap'?' on':'')+'" id="bdsw">Swaps</button><button type="button" class="chip'+(dp==='ins'?' on':'')+'" id="bdin">Inserts (others shift)</button></div></div>';
+ h+='<div class="hint">Tap a frame to select it, then tap another to '+(dp==='ins'?'move it there':'swap')+', or drag. '+(mv==='unit'?'The whole painting moves: frame shape, crop and picture.':'Only the picture moves; frame shapes stay put.')+' Drag onto the tray to take the picture off.</div>';
  h+='</div><div class="colR">';
  var st='';
  if(UI.fail)st='<div class="stat warn"><b>Can’t shuffle:</b> '+esc(UI.fail)+'</div>';
@@ -528,6 +565,7 @@ function renderBuilder(){
  else if(!ws.placed)st='<div class="stat"><b>'+b.picks.length+' picked ('+wc.whale+' whale'+(wc.whale===1?'':'s')+' + '+wc.pet+' petunia'+(wc.pet===1?'':'s')+').</b> Tap <b>Shuffle</b> to hang them, or tap a frame and a tray picture to place them yourself.</div>';
  else st='<div class="stat ok">✓ '+ws.placed+'/8 hung, every crop approved. Picked: '+wc.whale+' whale'+(wc.whale===1?'':'s')+' + '+wc.pet+' petunia'+(wc.pet===1?'':'s')+'.</div>';
  h+=st;
+ if(!g.ok&&!UI.fail)h+='<div class="stat warn" id="rowwarn"><b>Uneven rows.</b> '+esc(rowWarn(b.kinds))+' You can keep it as is.</div>';
  if(sel!=null)h+=panelHTML(b,sel);
  var tray=b.picks.filter(function(n){return b.items.indexOf(n)<0});
  h+='<h2 style="text-align:left;margin:10px 0 4px">Tray ('+tray.length+')</h2><div class="tray" id="tray">'+(tray.length?tray.map(function(n){return '<button type="button" class="tt'+(UI.tray===n?' sel':'')+'" data-tn="'+n+'" style="background-image:url('+URLS[BY[n].i]+')" aria-label="#'+n+'"><i>'+RANK[n]+'</i></button>'}).join(''):'<span class="note" style="align-self:center">'+(b.picks.length?'All picked pictures are on the wall. Drop one here to take it off.':'Pictures you pick but haven’t hung wait here.')+'</span>')+'</div>';
@@ -547,30 +585,35 @@ function panelHTML(b,i){var s=slotState(b,i),k=s.k,row=Math.floor(i/4)+1,col=i%4
  h+='<div class="pbtns">';
  if(b.kinds[i]!=='S')h+='<button type="button" class="btn" id="prot">⟳ Rotate to '+(b.kinds[i]==='R'?'vertical':'horizontal')+'</button>';
  h+='<button type="button" class="btn" id="pswapin">🔁 Swap in…</button>';
- if(!s.empty)h+='<button type="button" class="btn'+(UI.mode==='pic'?' on':'')+'" id="pswapp">⇄ Swap picture with…</button>';
- h+='<button type="button" class="btn'+(UI.mode==='frame'?' on':'')+'" id="pswapf">▭ Swap frame shape with…</button>';
+ h+='<button type="button" class="btn'+(UI.mode==='unit'?' on':'')+'" id="pswapu">⇄ Move painting + frame to…</button>';
+ if(!s.empty)h+='<button type="button" class="btn'+(UI.mode==='pic'?' on':'')+'" id="pswapp">🖼 Swap picture only with…</button>';
+ h+='<button type="button" class="btn'+(UI.mode==='frame'?' on':'')+'" id="pswapf">▭ Swap frame shape only with…</button>';
  h+='<button type="button" class="btn'+(locked?' on':'')+'" id="plock">'+(locked?'🔒 Locked (tap to unlock)':'🔓 Lock slot')+'</button>';
  if(!s.empty)h+='<button type="button" class="btn warn" id="prem">↩ Remove to tray</button>';
  h+='</div>';
- if(UI.mode==='pic')h+='<div class="hint">Tap the frame whose picture you want to swap with.</div>';
+ if(UI.mode==='unit')h+='<div class="hint">Tap the frame to trade places with. The painting travels with its frame, crop and lock.</div>';
+ else if(UI.mode==='pic')h+='<div class="hint">Tap the frame whose picture you want to swap with. Frame shapes stay put.</div>';
  else if(UI.mode==='frame')h+='<div class="hint">Tap the frame to exchange frame shapes with (square ↔ rectangle, horizontal ↔ vertical). Pictures stay where they are.</div>';
- else h+='<div class="hint">'+(ST.ui.tapswap?'Tap another frame to swap pictures. ':'')+'Tap this frame again to deselect.</div>';
+ else h+='<div class="hint">'+(ST.ui.tapswap?'Tap another frame to '+(ST.ui.drop==='ins'?'move this '+(ST.ui.move==='pic'?'picture':'painting')+' there. ':'swap '+(ST.ui.move==='pic'?'pictures only. ':'paintings (frame + picture). ')):'')+'Tap this frame again to deselect.</div>';
  return h+'</div>'}
 // ---- builder events
+function mvMode(){return ST.ui.move==='pic'?'pic':'unit'}
+function movedMsg(m,how){var w=rowWarn(ST.b.kinds);return (m==='unit'?(how==='ins'?'Moved painting + frame (the others shifted).':'Swapped paintings (frame + picture).'):(how==='ins'?'Moved picture (the others shifted).':'Swapped pictures only.'))+(w?' Rows are uneven, see the note.':'')}
+function doMove(a,i,m){var how=ST.ui.drop==='ins'?'ins':'swap';UI.sel=i;edit(function(x){relocate(x,a,i,m,how)});toast(movedMsg(m,how))}
 function onSlotTap(i){var b=ST.b,sel=UI.sel;
  if(UI.mode&&sel!=null&&i!==sel){var m=UI.mode;UI.mode=null;
-  if(m==='frame'){if(b.kinds[i]===b.kinds[sel]){toast('Those two frames are the same shape.');UI.sel=i;renderBuilder();return}edit(function(x){swapKinds(x,sel,i)});UI.sel=i;toast('Frames swapped.')}
-  else{edit(function(x){swapSlots(x,sel,i)});UI.sel=i;toast('Pictures swapped.')}
+  if(m==='frame'){if(b.kinds[i]===b.kinds[sel]){toast('Those two frames are the same shape.');UI.sel=i;renderBuilder();return}edit(function(x){swapKinds(x,sel,i)});UI.sel=i;toast('Frames swapped. Pictures stayed where they were.'+(rowWarn(ST.b.kinds)?' Rows are uneven, see the note.':''))}
+  else{var a0=sel;doMove(a0,i,m==='unit'?'unit':'pic')}
   renderBuilder();return}
  if(UI.mode&&i===sel){UI.mode=null;renderBuilder();return}
  if(UI.tray!=null){var n=UI.tray;UI.tray=null;var ok=true;edit(function(x){ok=placePic(x,i,n)});UI.sel=i;renderBuilder();return}
- if(sel!=null&&sel!==i&&ST.ui.tapswap){var a=sel;UI.sel=i;edit(function(x){swapSlots(x,a,i)});toast('Swapped.');return}
+ if(sel!=null&&sel!==i&&ST.ui.tapswap){doMove(sel,i,mvMode());return}
  UI.sel=sel===i?null:i;UI.fail=null;renderBuilder()}
 function onTrayTap(n){var b=ST.b;
  if(UI.sel!=null){var s=UI.sel;edit(function(x){placePic(x,s,n)});return}
  UI.tray=UI.tray===n?null:n;renderBuilder()}
 function dropOn(src,tgt){ // src {t:'s',i}|{t:'t',n}; tgt {t:'s',i}|{t:'tray'}
- if(src.t==='s'&&tgt.t==='s'){if(src.i===tgt.i)return;UI.sel=tgt.i;edit(function(x){swapSlots(x,src.i,tgt.i)});toast('Swapped.')}
+ if(src.t==='s'&&tgt.t==='s'){if(src.i===tgt.i)return;doMove(src.i,tgt.i,mvMode())}
  else if(src.t==='t'&&tgt.t==='s'){UI.sel=tgt.i;edit(function(x){placePic(x,tgt.i,src.n)})}
  else if(src.t==='s'&&tgt.t==='tray'){var i=src.i;if(!ST.b.items[i])return;edit(function(x){x.items[i]=0});UI.sel=null;toast('Moved back to the tray.')}}
 var DR=null,supClick=0;
@@ -580,10 +623,11 @@ function bindDrag(){
   if(e.pointerType==='mouse'&&e.button!==0)return;
   var t=e.target.closest&&e.target.closest('[data-s],[data-tn]');if(!t||!root.contains(t))return;
   var src=t.dataset.s!=null?{t:'s',i:+t.dataset.s}:{t:'t',n:+t.dataset.tn};
-  if(src.t==='s'&&!ST.b.items[src.i]){DR={src:src,x:e.clientX,y:e.clientY,id:e.pointerId,el:t,drag:false,noDrag:true};return}
+  if(src.t==='s'&&!ST.b.items[src.i]&&mvMode()!=='unit'){DR={src:src,x:e.clientX,y:e.clientY,id:e.pointerId,el:t,drag:false,noDrag:true};return}
   DR={src:src,x:e.clientX,y:e.clientY,id:e.pointerId,el:t,drag:false}});
  window.addEventListener('pointermove',function(e){if(!DR||e.pointerId!==DR.id||DR.noDrag)return;
-  if(!DR.drag){if(Math.hypot(e.clientX-DR.x,e.clientY-DR.y)<8)return;DR.drag=true;var g=document.createElement('div');g.className='ghost';var n=DR.src.t==='s'?ST.b.items[DR.src.i]:DR.src.n;g.style.backgroundImage='url('+URLS[BY[n].i]+')';document.body.appendChild(g);DR.ghost=g;DR.el.classList.add('src');try{DR.el.setPointerCapture(e.pointerId)}catch(x){}}
+  if(!DR.drag){if(Math.hypot(e.clientX-DR.x,e.clientY-DR.y)<8)return;DR.drag=true;var g;if(DR.src.t==='s'&&mvMode()==='unit'){var rc=DR.el.getBoundingClientRect();g=DR.el.cloneNode(true);g.removeAttribute('data-s');g.className='fr ghost unit';g.style.cssText='width:'+rc.width+'px;height:'+rc.height+'px';[].slice.call(g.querySelectorAll('.bgd')).forEach(function(x){x.remove()})}
+   else{g=document.createElement('div');g.className='ghost';var n=DR.src.t==='s'?ST.b.items[DR.src.i]:DR.src.n;g.style.backgroundImage='url('+URLS[BY[n].i]+')'}document.body.appendChild(g);DR.ghost=g;DR.el.classList.add('src');try{DR.el.setPointerCapture(e.pointerId)}catch(x){}}
   e.preventDefault();DR.ghost.style.left=e.clientX+'px';DR.ghost.style.top=e.clientY+'px';
   var tg=tgtAt(e.clientX,e.clientY);document.querySelectorAll('.drop').forEach(function(x){x.classList.remove('drop')});if(tg&&tg.el)tg.el.classList.add('drop');DR.tg=tg},{passive:false});
  function end(e,cancel){if(!DR||e.pointerId!==DR.id)return;var d=DR;DR=null;
@@ -596,6 +640,9 @@ function bindDrag(){
 function tgtAt(x,y){var e=document.elementFromPoint(x,y);if(!e)return null;var s=e.closest('[data-s]');if(s&&$('v-bld').contains(s))return {t:'s',i:+s.dataset.s,el:s};var t=e.closest('#tray');if(t)return {t:'tray',el:t};return null}
 function bldClick(e){var t=e.target.closest('button,a');if(!t)return;var id=t.id,b=ST.b,sel=UI.sel;
  if(id==='bshuf'){UI.fail=null;doShuffle()}
+ else if(id==='bposu'){UI.fail=null;doUnitShuffle()}
+ else if(id==='bmvu'||id==='bmvp'){ST.ui.move=id==='bmvu'?'unit':'pic';UI.mode=null;persistSoon();renderBuilder()}
+ else if(id==='bdsw'||id==='bdin'){ST.ui.drop=id==='bdin'?'ins':'swap';persistSoon();renderBuilder()}
  else if(id==='bpos'){UI.fail=null;doPositions()}
  else if(id==='bfit'){UI.fail=null;doAutoFit()}
  else if(id==='bpick'){UI.fail=null;openSheet({kind:'pick',f:'all'})}
@@ -608,6 +655,7 @@ function bldClick(e){var t=e.target.closest('button,a');if(!t)return;var id=t.id
   if(id==='cprev'||id==='cnext'){var k=kindShape(b,sel),n=b.items[sel],al=allowed(n,k);if(al.length<2)return;var ix=al.findIndex(function(o){return o.v===b.vars[sel]});ix=(ix+(id==='cnext'?1:-1)+al.length)%al.length;edit(function(x){x.vars[sel]=al[ix].v})}
   else if(id==='prot'){edit(function(x){rotate(x,sel)})}
   else if(id==='pswapin'){openSheet({kind:'swap',slot:sel,f:'all',fit:false})}
+  else if(id==='pswapu'){UI.mode=UI.mode==='unit'?null:'unit';renderBuilder()}
   else if(id==='pswapp'){UI.mode=UI.mode==='pic'?null:'pic';renderBuilder()}
   else if(id==='pswapf'){UI.mode=UI.mode==='frame'?null:'frame';renderBuilder()}
   else if(id==='plock'){edit(function(x){x.locks[sel]=!x.locks[sel]})}
