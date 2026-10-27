@@ -21,8 +21,8 @@ h1{margin:0;font-weight:400;font-size:.95rem;line-height:21px;letter-spacing:.08
 h1 small{display:none;font-size:.64rem;letter-spacing:.14em;color:var(--soft);font-style:italic;text-transform:none;margin-left:10px}
 @media(min-width:700px){h1 small{display:inline}}
 @media(max-height:520px){header{display:none}}
-nav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;margin:0 6px;background:var(--cream)}
-nav button{min-width:0;min-height:46px;background:none;border:0;border-bottom:3px solid transparent;font-size:clamp(.8rem,3.9vw,.95rem);padding:4px 2px;color:var(--soft);cursor:pointer;position:relative;white-space:nowrap;overflow:hidden;text-overflow:clip}
+nav{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0;margin:0 6px;background:var(--cream)}
+nav button{min-width:0;min-height:46px;background:none;border:0;border-bottom:3px solid transparent;font-size:clamp(.72rem,3.5vw,.95rem);padding:4px 2px;color:var(--soft);cursor:pointer;position:relative;white-space:nowrap;overflow:hidden;text-overflow:clip}
 nav button.on{color:var(--wine);border-bottom-color:var(--wine);font-weight:600}
 nav button .cnt{position:absolute;top:2px;right:3px;min-width:1.5em;font-size:.6rem;line-height:1.45em;border-radius:99px;background:var(--gold);color:#fff;margin:0;padding:0 4px;font-weight:600;text-align:center}
 #topsp{height:var(--top)}
@@ -237,13 +237,36 @@ body.sh .toast{bottom:auto;top:calc(var(--top) + 6px);z-index:600}
 }
 .toast span{min-width:0;overflow-wrap:anywhere}
 
+/* My 8 (Wall 3) tab */
+.pieces{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:flex-end;justify-content:center;background:#f1e8d2;border-radius:6px;padding:8px 6px;margin:6px 0}
+.pieces .pc{text-align:center}
+.pieces .pc i{display:block;font:700 .62rem/1.2 system-ui,sans-serif;font-style:normal;color:var(--soft);margin-top:2px}
+.pieces .pcf{display:flex;align-items:flex-end;justify-content:center;min-height:54px}
+.big8{flex:1 1 100%;min-height:52px;font-size:1rem}
+.agrid{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;margin:6px 0}
+@media(min-width:760px){.agrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.acard{min-width:0;background:var(--paper);border:1px solid var(--rule);border-radius:8px;padding:8px 0 8px;box-shadow:0 2px 8px rgba(60,40,10,.1)}
+.acard .ah{display:flex;align-items:center;gap:8px;margin:0 8px 6px}
+.acard .ah b{flex:1;min-width:0;font-size:1rem}
+.acard .ah small{display:block;font-size:.7rem;color:var(--soft);font-weight:400;letter-spacing:.02em}
+.acard .awall{cursor:pointer;padding:0;border-left:0;border-right:0;border-radius:0;box-shadow:none;overflow:hidden}
+.acard .arow{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:6px;margin:8px 8px 0}
+.acard .arow .btn{padding:0 4px;font-size:.88rem}
+@media(min-width:760px){.acard{padding:8px}.acard .ah,.acard .arow{margin-left:0;margin-right:0}.acard .awall{border:1px solid var(--rule);border-radius:6px}}
+@media(max-width:759px){#v-my8 .agrid{margin-left:-8px;margin-right:-8px}.acard{border-left:0;border-right:0;border-radius:0}}
+.ov[data-k=arr] .ovb{max-width:none;padding:0;background:#e9e0cf;overflow:auto;-webkit-overflow-scrolling:touch;display:block}
+.ov[data-k=arr] .ovf{flex-wrap:wrap;gap:6px}
+@media(max-height:520px){.ov[data-k=arr] .ovf{flex-wrap:nowrap;gap:4px;padding:3px 6px calc(3px + env(safe-area-inset-bottom))}.ov[data-k=arr] .ovf .zl{flex:1 1 0;gap:4px}}
+.acard .awall.big{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}.acard .awall.big .awi{width:172%}
+
 </style>
 </head>
 <body>
 <div id="top"><header><h1>Wall Builder<small>pick eight, shuffle, arrange, save</small></h1></header>
-<nav id="nav" role="tablist"><button type="button" data-v="lib" class="on">Library</button><button type="button" data-v="bld">Builder</button><button type="button" data-v="sav">Saved</button><button type="button" data-v="src">Sources</button></nav></div>
+<nav id="nav" role="tablist"><button type="button" data-v="my8" class="on">My 8</button><button type="button" data-v="lib">Library</button><button type="button" data-v="bld">Builder</button><button type="button" data-v="sav">Saved</button><button type="button" data-v="src">Sources</button></nav></div>
 <div id="topsp"></div>
 <main>
+<section class="view" id="v-my8"></section>
 <section class="view" id="v-lib"></section>
 <section class="view" id="v-bld"></section>
 <section class="view" id="v-sav"></section>
@@ -352,8 +375,8 @@ var _stripped=0;
 // ---------- state
 var ST;
 function freshB(){return {kinds:'RRSRSRSR',items:[0,0,0,0,0,0,0,0],vars:[0,0,0,0,0,0,0,0],locks:[false,false,false,false,false,false,false,false],picks:[],curId:null,name:'',liked:false}}
-function fresh(){return {b:freshB(),saved:[],seq:0,ui:{lv:'list',lf:'all',ls:'rank',rej:false,tapswap:true,move:'unit',drop:'swap',sf:'new',srcOpen:false},crTxt:null,scTxt:null}}
-function load(){try{var s=JSON.parse(localStorage.getItem(KEY));if(s&&s.b){var o=fresh();Object.keys(o).forEach(function(k){if(s[k]!=null)o[k]=s[k]});o.ui=Object.assign(fresh().ui,s.ui||{});o.b=Object.assign(freshB(),s.b);return o}}catch(e){}return fresh()}
+function fresh(){return {b:freshB(),saved:[],seq:0,ui:{lv:'list',lf:'all',ls:'rank',rej:false,tapswap:true,move:'unit',drop:'swap',sf:'new',srcOpen:false},crTxt:null,scTxt:null,pre:{rs:[],seq:0}}}
+function load(){try{var s=JSON.parse(localStorage.getItem(KEY));if(s&&s.b){var o=fresh();Object.keys(o).forEach(function(k){if(s[k]!=null)o[k]=s[k]});o.ui=Object.assign(fresh().ui,s.ui||{});o.pre=Object.assign({rs:[],seq:0},s.pre||{});if(!Array.isArray(o.pre.rs))o.pre.rs=[];o.b=Object.assign(freshB(),s.b);return o}}catch(e){}return fresh()}
 var saveT=null;
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(ST))}catch(e){}}
 function persistSoon(){clearTimeout(saveT);saveT=setTimeout(function(){saveT=null;persist()},300)}
@@ -524,9 +547,9 @@ function randomPicks(){
  for(var t=0;t<600;t++){var pk=shuf(W).slice(0,4).concat(shuf(P).slice(0,4));if(solveShapes(pk,3,5).ok)return pk}
  return null}
 // ---------- nav / views
-var VIEWS=['lib','bld','sav','src'];
+var VIEWS=['my8','lib','bld','sav','src'];
 function show(v){UI.tab=v;document.body.setAttribute('data-tab',v);VIEWS.forEach(function(x){$('v-'+x).classList.toggle('on',x===v)});document.querySelectorAll('#nav button').forEach(function(b){b.classList.toggle('on',b.dataset.v===v)});
- if(v==='lib')renderLib();else if(v==='bld')renderBuilder();else if(v==='sav')renderSaved();else renderSrc();updNav();window.scrollTo(0,0)}
+ if(v==='my8')renderMy8();else if(v==='lib')renderLib();else if(v==='bld')renderBuilder();else if(v==='sav')renderSaved();else renderSrc();updNav();window.scrollTo(0,0)}
 function updNav(){var b=ST.b;var pc=document.querySelector('#nav [data-v="bld"]');pc.innerHTML='Builder'+(b.picks.length?'<span class="cnt">'+b.picks.length+'/8</span>':'');
  var sc=document.querySelector('#nav [data-v="sav"]');sc.innerHTML='Saved'+(ST.saved.length?'<span class="cnt">'+ST.saved.length+'</span>':'')}
 // ---------- LIBRARY
@@ -555,7 +578,7 @@ function togglePick(n){var b=ST.b,i=b.picks.indexOf(n);
  if(UI.tab==='lib')renderLib();if(UI.sheet&&UI.sheet.kind==='pick')drawSheet();if(UI.sheet&&UI.sheet.kind==='det')drawSheet()}
 // ---------- sheets
 function openSheet(s){UI.sheet=s;$('ov').classList.add('on');$('ov').setAttribute('data-k',s.kind);document.body.style.overflow='hidden';document.body.classList.add('sh');$('toast').classList.remove('on');drawSheet();$('ovb').scrollTop=0;$('ovb').scrollLeft=0}
-function closeSheet(){UI.sheet=null;$('ov').classList.remove('on');$('ov').removeAttribute('data-k');document.body.style.overflow='';document.body.classList.remove('sh');if(UI.tab==='lib')renderLib();else if(UI.tab==='bld')renderBuilder()}
+function closeSheet(){UI.sheet=null;$('ov').classList.remove('on');$('ov').removeAttribute('data-k');document.body.style.overflow='';document.body.classList.remove('sh');if(UI.tab==='my8')renderMy8();else if(UI.tab==='lib')renderLib();else if(UI.tab==='bld')renderBuilder()}
 function optCard(n,k,o,sel){var al=o.st==='a',cut=cutOf(n,o.rect),u=5.2;
  return '<div class="opt'+(al?'':' no')+(sel?' sel':'')+'" data-opt="'+k+':'+o.v+'">'+miniFrame(n,k,o.rect,u,false)+'<span class="st '+(al?'a':'r')+'">'+(al?'✓ approved':o.st==='r'?'not approved':'not reviewed')+'</span>option '+(o.v+1)+' · shows '+showsPct(n,o.rect)+'%'+(cut>HEAVY?' <b style="color:#a8812f">✂ tight</b>':'')+'</div>'}
 function drawDet(){var s=UI.sheet,n=s.n,it=BY[n];
@@ -580,7 +603,7 @@ function drawDet(){var s=UI.sheet,n=s.n,it=BY[n];
 function drawPick(){$('ovt').textContent='Pick your 8 ('+ST.b.picks.length+'/8)';
  var pk=ST.b.picks,f=UI.sheet.f||'all',list=ORDER.filter(function(n){return f==='all'||BY[n].theme===f});
  var w=pk.filter(function(n){return BY[n].theme==='Whale'}).length;
- var h='<div class="chips"><button type="button" class="chip'+(f==='all'?' on':'')+'" data-pf="all">All</button><button type="button" class="chip W'+(f==='Whale'?' on':'')+'" data-pf="Whale">Whales</button><button type="button" class="chip P'+(f==='Petunia'?' on':'')+'" data-pf="Petunia">Petunias</button></div><div class="grid">'+
+ var h='<div class="chips"><button type="button" class="chip'+(f==='all'?' on':'')+'" data-pf="all">All</button><button type="button" class="chip W'+(f==='Whale'?' on':'')+'" data-pf="Whale">Whales</button><button type="button" class="chip P'+(f==='Petunia'?' on':'')+'" data-pf="Petunia">Petunias</button><span class="sp"></span><button type="button" class="chip" id="pmy8">★ Use My 8 (Wall 3)</button></div><div class="grid">'+
   list.map(function(n){var it=BY[n],on=pk.indexOf(n)>=0;return '<button type="button" class="tile '+it.theme+(on?' sel':'')+(!on&&pk.length>=8?' dim':'')+'" data-pk="'+n+'"><div class="sq"><img alt="" src="'+URLS[it.i]+'"><i class="rn">'+RANK[n]+'</i><i class="tk">'+(on?'✓':'')+'</i></div><div class="bd">'+badgesHTML(n)+'</div></button>'}).join('')+'</div>';
  $('ovb').innerHTML=h;
  $('ovf').innerHTML='<b>'+pk.length+'/8 picked<br><span style="font-weight:400;color:var(--soft)">'+w+' whales · '+(pk.length-w)+' petunias (info only)</span></b><button type="button" class="btn sm" id="pclr">Clear</button><button type="button" class="btn sm" id="prnd">Random 4+4</button><button type="button" class="btn pri" id="pdone">Done</button>'}
@@ -592,7 +615,7 @@ function drawSwap(){var s=UI.sheet,b=ST.b,i=s.slot,k=kindShape(b,i),f=s.f||'all'
   return '<div class="srow'+(ok?'':' dis')+(cur?' cur':'')+'" data-sw="'+n+'">'+miniFrame(n,k,rect,2.8,!ok)+'<div class="tx"><b>#'+RANK[n]+' · '+esc(it.title)+'</b><i>'+tagHTML(it)+' '+badgesHTML(n)+(cur?' · in this slot':onw>=0?' · on wall (slot '+(Math.floor(onw/4)+1)+'·'+(onw%4+1)+', will swap)':b.picks.indexOf(n)>=0?' · in your 8':'')+'</i>'+(ok?'':'<em>no approved '+SHW[k]+' crop for this frame</em>')+'</div></div>'}).join('')||'<div class="note">Nothing fits this frame shape.</div>';
  $('ovb').innerHTML=h;$('ovf').innerHTML='';$('ovf').style.display='none'}
 function drawSheet(){var s=UI.sheet;if(!s)return;var st=$('ovb').scrollTop,sl=$('ovb').scrollLeft;$('ovf').style.display='';
- if(s.kind==='det')drawDet();else if(s.kind==='pick')drawPick();else if(s.kind==='swap')drawSwap();else if(s.kind==='png')drawPng();else if(s.kind==='wall')drawWallZoom();else if(s.kind==='big')drawBig();
+ if(s.kind==='det')drawDet();else if(s.kind==='pick')drawPick();else if(s.kind==='swap')drawSwap();else if(s.kind==='png')drawPng();else if(s.kind==='wall')drawWallZoom();else if(s.kind==='big')drawBig();else if(s.kind==='arr')drawArr();
  $('ovb').scrollTop=st;$('ovb').scrollLeft=sl}
 function drawPng(){var s=UI.sheet;$('ovt').textContent='Wall image';$('ovb').innerHTML='<div class="note">Tap and hold the image to save it to Photos, or use Download.</div><img class="imgprev" alt="Wall" src="'+s.url+'"><div class="chips"><a class="btn pri" style="display:inline-flex;align-items:center;text-decoration:none" href="'+s.url+'" download="'+esc(s.file)+'">Download PNG</a></div>';$('ovf').innerHTML='';$('ovf').style.display='none'}
 // ---------- BUILDER
@@ -608,7 +631,7 @@ function renderBuilder(){
  var mv=ST.ui.move==='pic'?'pic':'unit',dp=ST.ui.drop==='ins'?'ins':'swap';
  h+='<div class="mvbox"><div class="mvl"><span>Moving a frame moves</span><button type="button" class="chip'+(mv==='unit'?' on':'')+'" id="bmvu">Painting + frame</button><button type="button" class="chip'+(mv==='pic'?' on':'')+'" id="bmvp">Picture only</button></div>'+
   '<div class="mvl"><span>Dropping on another frame</span><button type="button" class="chip'+(dp==='swap'?' on':'')+'" id="bdsw">Swaps</button><button type="button" class="chip'+(dp==='ins'?' on':'')+'" id="bdin">Inserts (others shift)</button></div></div>';
- h+='<div class="hint">Tap a frame to select it, then tap another to '+(dp==='ins'?'move it there':'swap')+', or drag. '+(mv==='unit'?'The whole painting moves: frame shape, crop and picture.':'Only the picture moves; frame shapes stay put.')+' Drag onto the tray to take the picture off.</div>';
+ h+='<div class="hint">Tap a frame to select it, then tap another to '+(dp==='ins'?'move it there':'swap')+', or drag. '+(mv==='unit'?'The whole painting moves: frame shape, crop and picture.':'Only the picture moves; frame shapes stay put.')+' Drag onto the tray to take the picture off.</div><div class="chips"><button type="button" class="chip" id="bgomy8">★ My 8 (Wall 3) + shuffled arrangements</button></div>';
  h+='</div><div class="colR">';
  var st='';
  if(UI.fail)st='<div class="stat warn"><b>Can’t shuffle:</b> '+esc(UI.fail)+'</div>';
@@ -699,6 +722,7 @@ function bldClick(e){var t=e.target.closest('button,a');if(!t)return;var id=t.id
  else if(id==='bpos'){UI.fail=null;doPositions()}
  else if(id==='bfit'){UI.fail=null;doAutoFit()}
  else if(id==='bpick'){UI.fail=null;openSheet({kind:'pick',f:'all'})}
+ else if(id==='bgomy8')show('my8');
  else if(id==='bzoom')openWallZoom();
  else if(id==='bbig'||id==='pbig'||id==='pbigv')openBig(sel);
  else if(id==='bundo')undo();else if(id==='bredo')redo();
@@ -724,7 +748,7 @@ function saveWall(asNew){var b=ST.b;
  ST.seq++;var w={id:'w'+Date.now().toString(36)+ST.seq,name:nm||'Wall '+ST.seq,liked:!!b.liked,notes:'',t:Date.now(),kinds:b.kinds,items:b.items.slice(),vars:b.vars.slice()};
  ST.saved.unshift(w);b.curId=w.id;b.name=nm;persist();var miss=8-placedCount(b);toast('Saved as “'+w.name+'”'+(miss?' ('+miss+' empty frame'+(miss>1?'s':'')+')':'')+'.','See Saved',function(){show('sav')});updNav();renderBuilder()}
 function loadWall(w,asCopy){var b=ST.b;U.push(snap());RD.length=0;
- b.kinds=w.kinds;b.items=w.items.slice();b.vars=w.vars.slice();b.locks=[false,false,false,false,false,false,false,false];b.picks=w.items.filter(Boolean);b.liked=asCopy?false:!!w.liked;b.curId=asCopy?null:w.id;b.name=asCopy?'':w.name;norm();UI.sel=null;UI.mode=null;UI.tray=null;UI.fail=null;persist();show('bld');toast(asCopy?'Editing a copy. Saving makes a new wall.':'Loaded “'+w.name+'”. Saving updates it.')}
+ b.kinds=w.kinds;b.items=w.items.slice();b.vars=w.vars.slice();b.locks=[false,false,false,false,false,false,false,false];b.picks=w.items.filter(Boolean);b.liked=asCopy?false:!!w.liked;b.curId=asCopy?null:w.id;b.name=asCopy?(w.pname||''):w.name;norm();UI.sel=null;UI.mode=null;UI.tray=null;UI.fail=null;persist();show('bld');toast(asCopy?'Editing a copy. Saving makes a new wall.':'Loaded “'+w.name+'”. Saving updates it.')}
 // ---------- SAVED
 function wallLine(w,i){var g=geom(w.kinds),f=g.f[i],n=w.items[i];if(!n)return null;var it=BY[n],o=optOf(n,f.k,w.vars[i]);var r=rectFor(n,f.k,w.vars[i]);
  return 'R'+(f.line+1)+'C'+(f.j+1)+': ['+'#'+n+'] '+it.title+' — '+it.artist+', '+it.date+' — '+(f.k==='S'?'square':f.k==='L'?'horizontal rectangle':'vertical rectangle')+' — crop option '+(w.vars[i]+1)+(o&&o.st==='a'?'':' (NOT approved)')+' rect '+r.map(function(x){return x.toFixed(3)}).join(',')+' (x,y,w,h of whole picture) — shows '+showsPct(n,r)+'% — '+(it.src.find(function(x){return /Commons/.test(x[0])})||it.src[0])[1]}
@@ -828,8 +852,80 @@ function drawBig(){var s=UI.sheet,b=ST.b,i=s.slot,n=b.items[i];
  $('ovb').innerHTML='<div class="bigv"><div class="bigi">'+pic+'</div><div class="bigt">'+tagHTML(it)+' '+SHW[k]+' · row '+(Math.floor(i/4)+1)+', col '+(i%4+1)+(ss.valid?' · shows '+ss.pct+'% of the picture'+(ss.cut>HEAVY?' <b style="color:#a8812f">✂ tight</b>':''):' · <b style="color:#b3261e">'+esc(ss.msg)+'</b>')+(al.length?' · crop '+(ix+1)+' of '+al.length:'')+'<br>'+esc(it.artist)+' · '+esc(it.date)+' · '+citeLinks(it)+'</div></div>';
  $('ovf').innerHTML='<div class="zl"><button type="button" class="btn" id="bgprev" aria-label="Previous frame">‹ Frame</button><button type="button" class="btn" id="bgcp" aria-label="Previous crop"'+(al.length<2?' disabled':'')+'>‹ Crop</button><button type="button" class="btn" id="bgcn" aria-label="Next crop"'+(al.length<2?' disabled':'')+'>Crop ›</button><button type="button" class="btn" id="bgnext" aria-label="Next frame">Frame ›</button></div><div class="zl"><button type="button" class="chip'+(s.bare?'':' on')+'" id="bgfr">With frame</button><button type="button" class="chip'+(s.bare?' on':'')+'" id="bgbare">Picture only</button><button type="button" class="btn pri" id="bgdone">Done</button></div>'}
 function bigStep(d){var s=UI.sheet,hs=hungSlots();if(!hs.length)return;var p=hs.indexOf(s.slot);p=p<0?0:(p+d+hs.length)%hs.length;s.slot=hs[p];UI.sel=s.slot;drawSheet();if(UI.tab==='bld')renderBuilder()}
+
+// ---------- MY 8 (Wall 3): the picked eight + premade shuffled arrangements
+// each unit = one painting: picture + frame shape + orientation + approved crop. Arrangements only move whole units around the 8 slots,
+// so every arrangement keeps 3 squares + 5 rectangles and every picture keeps its own frame shape and crop.
+var MY8=[{n:56,c:'S',r:[0,0,1,.695],nm:'Top 1'},{n:33,c:'R',r:[.073,0,.797,1],nm:'Top 2'},{n:12,c:'V',r:[0,.025,1,.835],nm:'Top 3'},{n:30,c:'S',r:[.082,.101,.547,.825],nm:'Top 4'},
+ {n:44,c:'V',r:[0,.07,1,.801],nm:'Bottom 1'},{n:55,c:'S',r:[0,0,1,.76],nm:'Bottom 2'},{n:18,c:'R',r:[.11,0,.865,1],nm:'Bottom 3'},{n:53,c:'V',r:[.059,.006,.941,.856],nm:'Bottom 4'}];
+var SHUF8=[[3, 0, 2, 4, 7, 1, 5, 6], [2, 5, 0, 3, 7, 4, 6, 1], [5, 3, 7, 0, 4, 6, 1, 2], [6, 5, 1, 4, 3, 7, 0, 2], [5, 4, 6, 2, 0, 7, 3, 1], [7, 2, 0, 6, 1, 4, 5, 3], [4, 6, 2, 5, 0, 3, 1, 7]];
+var RS_MAX=4;
+function my8Var(u){var m=MY8[u],k=KS[m.c],al=allowed(m.n,k);if(!al.length)return bestVar(m.n,k);
+ return al.slice().sort(function(a,b){var da=0,db=0;for(var i=0;i<4;i++){da+=Math.abs(a.rect[i]-m.r[i]);db+=Math.abs(b.rect[i]-m.r[i])}return da-db})[0].v}
+function arrWall(perm){return {kinds:perm.map(function(u){return MY8[u].c}).join(''),items:perm.map(function(u){return MY8[u].n}),vars:perm.map(my8Var)}}
+function sigOf(w){return w.kinds+'|'+w.items.join(',')+'|'+w.vars.join(',')}
+function arrAll(){var l=[];(ST.pre.rs||[]).forEach(function(r){l.push({id:r.id,name:r.name,perm:r.perm,kind:'rs'})});
+ l.push({id:'orig',name:'Wall 3 original',perm:[0,1,2,3,4,5,6,7],kind:'orig'});
+ SHUF8.forEach(function(p,i){l.push({id:'s'+(i+1),name:'Shuffle '+(i+1),perm:p,kind:'shuf'})});return l}
+function arrById(id){return arrAll().filter(function(a){return a.id===id})[0]}
+function arrSaved(a){var s=sigOf(arrWall(a.perm));return ST.saved.filter(function(x){return sigOf(x)===s})[0]||null}
+function arrLayout(a){var w=arrWall(a.perm),f=function(s){return s.split('').map(function(c){return SHL[KS[c]]}).join(' ')};return 'Row 1: '+f(w.kinds.slice(0,4))+' · Row 2: '+f(w.kinds.slice(4))}
+function arrSave(a,mode){ // mode 'save' | 'like': both put the arrangement in Saved; like also hearts it (tap again to un-heart)
+ var w=arrWall(a.perm),s=arrSaved(a),msg;
+ if(s){if(mode==='like'){s.liked=!s.liked;msg=s.liked?'Liked “'+s.name+'”.':'Un-liked “'+s.name+'”.'}else msg='“'+s.name+'” is already in Saved.'}
+ else{s={id:'w'+Date.now().toString(36)+'p'+Math.random().toString(36).slice(2,6),name:a.name,liked:mode==='like',notes:'',t:Date.now(),kinds:w.kinds,items:w.items,vars:w.vars};ST.saved.unshift(s);msg=(mode==='like'?'Liked and saved “':'Saved “')+s.name+'”.'}
+ persist();updNav();toast(msg,'See Saved',function(){closeSheet();show('sav')});refreshCard(a.id)}
+function openArr(a){var s=arrSaved(a);if(UI.sheet)closeSheet();
+ if(s){loadWall(s,false);return}
+ var w=arrWall(a.perm);w.name=a.name;w.pname=a.name;loadWall(w,true);}
+function validPerm(p){var w=arrWall(p),g=geom(w.kinds);if(!g.ok)return false;
+ for(var i=0;i<8;i++){var o=optOf(w.items[i],KS[w.kinds[i]],w.vars[i]);if(!o||o.st!=='a')return false}return true}
+function whaleSpread(p){return [p.slice(0,4),p.slice(4)].every(function(r){return r.some(function(u){return BY[MY8[u].n].theme==='Whale'})})}
+function newPerm(){var have={};arrAll().forEach(function(a){have[sigOf(arrWall(a.perm))]=1});
+ for(var pass=0;pass<3;pass++)for(var t=0;t<2000;t++){var p=shuf([0,1,2,3,4,5,6,7]);
+  var moved=p.filter(function(u,i){return u!==i}).length;
+  if(moved<(pass===0?6:pass===1?4:2))continue;if(pass<2&&!whaleSpread(p))continue;
+  if(have[sigOf(arrWall(p))])continue;if(!validPerm(p))continue;return p}
+ return null}
+function doReshuffle(){var p=newPerm();if(!p){toast('Couldn’t find a new arrangement.');return}
+ ST.pre.seq=(ST.pre.seq||0)+1;var id='r'+ST.pre.seq;ST.pre.rs=[{id:id,name:'Reshuffle '+ST.pre.seq,perm:p}].concat(ST.pre.rs||[]).slice(0,RS_MAX);
+ persist();renderMy8();toast('New arrangement: Reshuffle '+ST.pre.seq+'. Tap Reshuffle again for another.');
+ var c=document.querySelector('#v-my8 [data-aid="'+id+'"]');if(c){var y=c.getBoundingClientRect().top+window.scrollY-(parseInt(getComputedStyle(document.documentElement).getPropertyValue('--top'))||72)-6;window.scrollTo(0,Math.max(0,y))}}
+function my8Big(){var m=ST.ui.mz;return m?m==='big':window.innerWidth<500}
+function cardHTML(a){var w=arrWall(a.perm),s=arrSaved(a),liked=!!(s&&s.liked);
+ return '<div class="acard" data-aid="'+a.id+'"><div class="ah"><b>'+esc(a.name)+'<small>'+esc(arrLayout(a))+(s?' · saved':'')+'</small></b><button type="button" class="hrt'+(liked?' on':'')+'" data-act="like" aria-label="Like" aria-pressed="'+liked+'">'+(liked?'♥':'♡')+'</button></div>'+
+  '<div class="wallbox awall'+(my8Big()?' big':'')+'" data-act="edit" role="button" aria-label="Open '+esc(a.name)+' for editing"><div class="awi">'+wallHTML(w,{mar:.5})+'</div></div>'+
+  '<div class="arow"><button type="button" class="btn pri" data-act="edit">✎ Edit</button><button type="button" class="btn'+(s?' ok':'')+'" data-act="save">'+(s?'✓ Saved':'Save')+'</button><button type="button" class="btn" data-act="big">🔍 Large</button></div></div>'}
+function refreshCard(id){var a=arrById(id);if(UI.tab==='my8'){var el=document.querySelector('#v-my8 [data-aid="'+id+'"]');if(el&&a)el.outerHTML=cardHTML(a)}
+ if(UI.sheet&&UI.sheet.kind==='arr')drawSheet()}
+function piecesHTML(){return '<div class="pieces">'+MY8.map(function(m,u){var k=KS[m.c],it=BY[m.n];return '<div class="pc"><div class="pcf">'+miniFrame(m.n,k,rectFor(m.n,k,my8Var(u)),3.3,false)+'</div><i>'+(u+1)+' · '+SHL[k]+'</i></div>'}).join('')+'</div>'}
+function renderMy8(){var l=arrAll();
+ var h='<h2 style="margin-top:8px">My 8 (Wall 3)</h2><div class="note" style="text-align:left">Your eight pieces with their approved crops and frame shapes: 3 squares (<b>S</b>) and 5 rectangles (<b>H</b> horizontal, <b>V</b> vertical). Every arrangement below moves whole paintings, picture and frame together, so each piece keeps its own frame shape and orientation. Tap a wall to edit it in the Builder.</div>'+piecesHTML()+
+  '<div class="chips"><button type="button" class="btn pri big8" data-act="reshuffle">🔀 Reshuffle (new random arrangement)</button></div><div class="chips"><span class="note" style="margin:0 4px 0 2px">Thumbnails</span><button type="button" class="chip'+(my8Big()?' on':'')+'" data-act="mz" data-v="big">Large (swipe sideways)</button><button type="button" class="chip'+(my8Big()?'':' on')+'" data-act="mz" data-v="fit">Fit screen</button></div>';
+ h+='<div class="agrid">'+l.map(cardHTML).join('')+'</div>';
+ h+='<div style="height:64px"></div><div class="fbar"><b>'+l.length+' arrangements</b><button type="button" class="btn pri" data-act="reshuffle">🔀 Reshuffle</button></div>';
+ $('v-my8').innerHTML=h}
+function my8Click(e){var t=e.target.closest('[data-act]');if(!t)return;var act=t.dataset.act;
+ if(act==='reshuffle'){doReshuffle();return}
+ if(act==='mz'){ST.ui.mz=t.dataset.v;persistSoon();renderMy8();return}
+ var c=t.closest('[data-aid]');if(!c)return;var a=arrById(c.dataset.aid);if(!a)return;
+ if(act==='edit')openArr(a);else if(act==='like')arrSave(a,'like');else if(act==='save')arrSave(a,'save');else if(act==='big'){UI.azoom=UI.azoom||(window.innerWidth<500?2:1);openSheet({kind:'arr',id:a.id})}}
+function drawArr(){var s=UI.sheet,a=arrById(s.id);if(!a){closeSheet();return}var z=UI.azoom||1,w=arrWall(a.perm),sv=arrSaved(a),liked=!!(sv&&sv.liked);
+ $('ovt').textContent=a.name;
+ var cw=$('ovb').clientWidth,ch=$('ovb').clientHeight,gg=geom(w.kinds),asp=(gg.W+1.6)/(gg.H+1.6),wpx=z===1?Math.floor(Math.min(cw,(ch-8)*asp)):Math.floor(cw*z),mt=z===1?Math.max(0,Math.floor((ch-wpx/asp)/2)):0;
+ $('ovb').innerHTML='<div class="zw" id="azw" style="width:'+wpx+'px;margin-top:'+mt+'px">'+wallHTML(w,{mar:0.8})+'</div>';
+ var zs=[[1,'Fit'],[2,'2×'],[3,'3×'],[4,'4×']].map(function(x){return '<button type="button" class="chip'+(z===x[0]?' on':'')+'" data-az="'+x[0]+'">'+x[1]+'</button>'}).join('');
+ $('ovf').innerHTML='<div class="zl">'+zs+'</div><div class="zl"><button type="button" class="btn" id="aprev">‹ Prev</button><span>'+esc(arrLayout(a))+'</span><button type="button" class="btn" id="anext">Next ›</button></div><div class="zl"><button type="button" class="btn" id="alike" aria-label="Like" style="'+(liked?'color:#c2253d;border-color:#c2253d':'')+'">'+(liked?'♥ Liked':'♡ Like')+'</button><button type="button" class="btn'+(sv?' ok':'')+'" id="asave">'+(sv?'✓ Saved':'Save')+'</button><button type="button" class="btn pri" id="aedit">✎ Edit</button><button type="button" class="btn" id="adone">Done</button></div>'}
+function arrSheetClick(t){var s=UI.sheet,a=arrById(s.id);if(!a)return;
+ var z=t.closest('[data-az]');if(z){UI.azoom=+z.dataset.az;drawSheet();return}
+ if(t.closest('#adone')){closeSheet();return}
+ if(t.closest('#aprev')||t.closest('#anext')){var l=arrAll(),i=l.findIndex(function(x){return x.id===s.id});i=(i+(t.closest('#anext')?1:-1)+l.length)%l.length;s.id=l[i].id;drawSheet();$('ovb').scrollTop=0;$('ovb').scrollLeft=0;return}
+ if(t.closest('#alike')){arrSave(a,'like');return}
+ if(t.closest('#asave')){arrSave(a,'save');return}
+ if(t.closest('#aedit')){openArr(a);return}}
 // ---------- wiring
 document.getElementById('nav').addEventListener('click',function(e){var t=e.target.closest('button');if(t&&t.dataset.v){UI.fail=null;if(UI.sheet)closeSheet();show(t.dataset.v)}});
+$('v-my8').addEventListener('click',my8Click);
 $('v-lib').addEventListener('click',function(e){var t=e.target;
  var c=t.closest('[data-lf],[data-lv],[data-ls],[data-rej],#lgo,#lrand');
  var pkEl=t.closest('[data-pk]');
@@ -847,6 +943,7 @@ $('v-src').addEventListener('click',srcClick);
 $('v-bld').addEventListener('input',function(e){if(e.target.id==='bname'){ST.b.name=e.target.value;persistSoon()}});
 $('ov').addEventListener('click',function(e){var t=e.target,s=UI.sheet;if(!s)return;
  if(t.closest('#ovx')){closeSheet();return}
+ if(s.kind==='arr'){arrSheetClick(t);return}
  if(s.kind==='wall'){var zc=t.closest('[data-z]');if(zc){UI.zoom=+zc.dataset.z;drawSheet();return}
   var sl=t.closest('.slot');if(sl){onSlotTap(+sl.dataset.s);drawSheet();return}
   if(t.closest('#zdone')){closeSheet();return}
@@ -867,6 +964,7 @@ $('ov').addEventListener('click',function(e){var t=e.target,s=UI.sheet;if(!s)ret
   var o=t.closest('[data-opt]');if(o){s.opt=o.dataset.opt;drawSheet();return}
   var step=t.closest('#dprev,#dnext');if(step){var i=ORDER.indexOf(s.n);i=(i+(step.id==='dnext'?1:-1)+ORDER.length)%ORDER.length;s.n=ORDER[i];s.opt=null;drawSheet();$('ovb').scrollTop=0;return}}
  if(s.kind==='pick'){var f=t.closest('[data-pf]');if(f){s.f=f.dataset.pf;drawSheet();return}
+  if(t.closest('#pmy8')){var w8=arrWall([0,1,2,3,4,5,6,7]);edit(function(x){x.kinds=w8.kinds;x.items=w8.items.slice();x.vars=w8.vars.slice();x.picks=w8.items.slice();x.locks=[false,false,false,false,false,false,false,false]});UI.sel=null;drawSheet();toast('My 8 (Wall 3) hung as you ordered it.');return}
   if(t.closest('#pclr')){edit(function(x){x.items=[0,0,0,0,0,0,0,0];x.vars=[0,0,0,0,0,0,0,0];x.picks=[];x.locks=[false,false,false,false,false,false,false,false]});drawSheet();return}
   if(t.closest('#prnd')){var r=randomPicks();if(!r){toast('Couldn’t find a feasible random 8.');return}edit(function(x){x.items=[0,0,0,0,0,0,0,0];x.vars=[0,0,0,0,0,0,0,0];x.picks=r;x.locks=[false,false,false,false,false,false,false,false]});drawSheet();return}
   if(t.closest('#pdone')){var b=ST.b,n=b.picks.length,empty=!placedCount(b);closeSheet();UI.fail=null;
@@ -884,7 +982,7 @@ var _rz=null;function onResize(){clearTimeout(_rz);_rz=setTimeout(function(){set
 window.addEventListener('resize',onResize);window.addEventListener('orientationchange',onResize);
 bindDrag();
 ST=load();initData();norm();updNav();
-show(ST.b.picks.length||ST.saved.length?'bld':'lib');
+show(location.hash==='#my8'?'my8':ST.b.picks.length||ST.saved.length?'bld':'my8');
 window.__wb={ST:function(){return ST},UI:UI,BY:BY,CR:function(){return CR},geom:geom,allowed:allowed,solve:solveShapes,planShuffle:planShuffle,show:show,RANK:function(){return RANK},ORDER:function(){return ORDER},wallStatus:wallStatus,exportText:exportText,undoLen:function(){return U.length}};
 })();
 
